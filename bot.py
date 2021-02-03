@@ -1,5 +1,6 @@
 
 import tweepy
+import time
 from config import getkeysandtokens
 
 
@@ -53,17 +54,25 @@ def store_last_seen(FILE_NAME, last_seen_id):
     return
 
 
-#API.mentions_timeline([since_id][, max_id][, count])
-tweets = api.mentions_timeline(read_last_seen(FILE_NAME), tweet_mode = 'extended')
-#print(tweets[0].text)
+
+# If a certain word was mentioned in a tweet, print out that tweet, reply, like and re-tweet
+def reply():
+    tweets = api.mentions_timeline(read_last_seen(FILE_NAME), tweet_mode = 'extended')
+    for tweet in reversed(tweets):
+        print(tweet.id, tweet.full_text.lower())
+        if '#hi' in tweet.full_text.lower():
+            print(str(tweet.id) + ' - ' + tweet.full_text)
+            api.update_status("@" + tweet.user.screen_name + "You have unlocked the auto reply, like and retweet function :)", tweet.id)
+            api.create_favorite(tweet.id)
+            api.retweet(tweet.id)
+            store_last_seen(FILE_NAME, tweet.id)
 
 
-# If a certain work was mentioned in a tweet, print out that tweet
-for tweet in reversed(tweets):
-    if 'hi' in tweet.full_text.lower():
-        print(str(tweet.id) + ' - ' + tweet.full_text)
-        api.update_status("@" + tweet.user.screen_name + " Yet another test", tweet.id)
-        store_last_seen(FILE_NAME, tweet.id)
+reply()
 
-
+'''
+while True:
+    reply()
+    time.sleep(15)
+'''
 
